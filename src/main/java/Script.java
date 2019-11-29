@@ -7,7 +7,6 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.TreeMap;
 
@@ -18,8 +17,8 @@ public class Script {
     private HashSet<String>[] lengthToSubstrings;
     private char[][] freqPrevChar;
     private char[] firstLetterFreq;
-    final int LONGEST_NAME = 500;
-    final int LENGTH_OF_AUTO_GENERATED_NAME = 5;
+    private final int LONGEST_NAME = 500;
+    private final int LENGTH_OF_AUTO_GENERATED_NAME = 5;
 
 
     private Script() {
@@ -45,17 +44,22 @@ public class Script {
     }
 
     private HashSet<String> CountMaxString(int n) {
-        HashSet<String> substrings = lengthToSubstrings[n];
-        TreeMap<Integer, HashSet<String>> freqToSubstrings = new TreeMap<>();
+        HashSet<String> substrings;
+        substrings = lengthToSubstrings[n];
+        TreeMap<Integer, HashSet<String>> freqToSubstrings;
+        freqToSubstrings = new TreeMap<>();
 
         for (String substring : substrings) {
             substring = substring.toLowerCase();
             int freq = 0;
+
             /* Ignoring case-sensitive issue, We sum the frequency*/
             if (substringToFreq.containsKey(substring))
                 freq += substringToFreq.get(substring);
             if (substringToFreq.containsKey(substring.toUpperCase()))
                 freq += substringToFreq.get(substring.toUpperCase());
+
+            /* Checks if the specific freq already has an entry on data structure */
             if (freqToSubstrings.containsKey(freq)) {
                 HashSet<String> oldSubstrings = freqToSubstrings.get(freq);
                 oldSubstrings.add(substring);
@@ -67,6 +71,7 @@ public class Script {
             }
         }
 
+        /* Polls last entry -> maximum freq value */
         HashSet<String> res = freqToSubstrings.pollLastEntry().getValue();
         for (String subString : res) {
             System.out.println(subString);
@@ -87,12 +92,13 @@ public class Script {
         return res;
     }
 
-    private String GenerateName(){
-        StringBuilder sb = new StringBuilder();
+    private String GenerateName() {
+        StringBuilder sb;
+        sb = new StringBuilder();
         char currentChar = getFrequentChar(firstLetterFreq);
         sb.append(Character.toUpperCase(currentChar));
 
-        for (int i = 1; i < LENGTH_OF_AUTO_GENERATED_NAME; i++){
+        for (int i = 1; i < LENGTH_OF_AUTO_GENERATED_NAME; i++) {
             char nextChar = getCharByPrevFreq(currentChar);
             sb.append(nextChar);
             currentChar = nextChar;
@@ -105,7 +111,7 @@ public class Script {
         return 't';
     }
 
-    private char getFrequentChar(char[] charArray){
+    private char getFrequentChar(char[] charArray) {
         return 't';
     }
 
@@ -114,15 +120,15 @@ public class Script {
         try {
             String prefixUrl = "https://www.behindthename.com";
             Document doc = Jsoup.connect("https://www.behindthename.com/names/usage/english").get();
-            ArrayList<String> urls = new ArrayList<String>();
+            ArrayList<String> suffixes = new ArrayList<String>();
             Elements webPagesHrefElements = doc.getElementsByAttributeValueContaining("href", "/names/usage/english/");
-            urls.add("/names/usage/english");
+            suffixes.add("/names/usage/english");
             for (Element urlElement : webPagesHrefElements)
-                urls.add(urlElement.attr("href"));
-            for (int i = 0; i < urls.size(); i++) {
-                String suffixUrl = urls.get(i);
+                suffixes.add(urlElement.attr("href"));
+            for (String suffixUrl : suffixes) {
                 String fullUrl = prefixUrl + suffixUrl;
                 Document pageDoc = Jsoup.connect(fullUrl).get();
+                /* Get the element which holds the names */
                 Elements nameElements = pageDoc.getElementsByClass("listName");
                 for (Element nameElement : nameElements) {
                     String name = parseFullLine(nameElement);
@@ -141,7 +147,7 @@ public class Script {
         try {
             FileWriter fw = new FileWriter("names.txt");
             BufferedWriter bw = new BufferedWriter(fw);
-            for (String name : names){
+            for (String name : names) {
                 bw.write(name + '\n');
             }
             bw.flush();
@@ -152,21 +158,22 @@ public class Script {
 
 
     private void addName(String name) {
-        if (names.contains(name))
-            return;
-        subString(name);
-        names.add(name);
+        if (!names.contains(name)) { // Prevent duplication
+            subString(name);
+            names.add(name);
+        }
+
     }
 
     // Function to print all sub strings
     private void subString(String name) {
         char[] str = name.toCharArray();
         firstLetterFreq[Character.toLowerCase(str[0]) - 97] += 1;
-        if (name.length() > 1){
+        if (name.length() > 1) {
             freqPrevChar[str[1] - 97][Character.toLowerCase(str[0]) - 97] += 1;
         }
-        for (int i = 2; i < str.length; i++){
-            freqPrevChar[str[i] - 97][str[i-1] - 97] += 1;
+        for (int i = 2; i < str.length; i++) {
+            freqPrevChar[str[i] - 97][str[i - 1] - 97] += 1;
         }
         int n = name.length();
         // Pick starting point
@@ -174,24 +181,17 @@ public class Script {
             // Pick ending point
             for (int i = 0; i <= n - len; i++) {
                 String tmp = "";
-                //  Print characters from current
-                // starting point to current ending
-                // point.
                 int j = i + len - 1;
                 for (int k = i; k <= j; k++) {
                     tmp += str[k];
                 }
                 System.out.println(tmp);
-                addSubstringToDS(tmp);
+                addToLengthToSubstrings(tmp);
+                addToSubstringsToFreq(tmp);
             }
         }
     }
 
-    private void addSubstringToDS(String tmp) {
-        addToLengthToSubstrings(tmp);
-        addToSubstringsToFreq(tmp);
-
-    }
 
     private void addToSubstringsToFreq(String tmp) {
         if (substringToFreq.containsKey(tmp)) {
@@ -215,6 +215,11 @@ public class Script {
         }
     }
 
+    /**
+     * The function of this function is to take the full line of the element that holds the name we ultimately want to receive, and clear it so that we only get the name.
+     * @param nameElement - The element which holds the name we want to extract.
+     * @return - The name we want to add to our data structures.
+     */
     private String parseFullLine(Element nameElement) {
         String nameFullLine = nameElement.toString();
         int startIndexOfName = nameFullLine.lastIndexOf("/name/");
