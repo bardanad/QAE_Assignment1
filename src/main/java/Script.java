@@ -152,6 +152,8 @@ public class Script {
 
 
     private void addName(String name) {
+        if (names.contains(name))
+            return;
         subString(name);
         names.add(name);
     }
@@ -231,11 +233,10 @@ public class Script {
     public static void main(String[] args) {
         Script s = new Script();
         s.parseSite();
-//        System.out.println(s.countSpecificString("Ya"));
-//        System.out.println(s.countSpecificString("As"));
-//        s.CountAllStrings(2);
+        System.out.println(s.countSpecificString("elle"));
+//        s.CountAllStrings(7);
 //        s.AllIncludesString("mkgddassafbadayardenfg");
-//        s.CountMaxString(1);
+//        s.CountMaxString(4);
 //        s.GenerateName();
     }
 
