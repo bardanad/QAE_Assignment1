@@ -3,6 +3,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -127,12 +129,25 @@ public class Script {
                     addName(name);
                 }
             }
-            System.out.println("done");
+            printDSToFiles();
         } catch (
                 IOException e) {
             e.printStackTrace();
         }
 
+    }
+
+    private void printDSToFiles() {
+        try {
+            FileWriter fw = new FileWriter("names.txt");
+            BufferedWriter bw = new BufferedWriter(fw);
+            for (String name : names){
+                bw.write(name + '\n');
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -215,16 +230,13 @@ public class Script {
 
     public static void main(String[] args) {
         Script s = new Script();
-        //s.parseSite();
-        s.addName("Assaf");
-        s.addName("Yarden");
-        s.addName("Yaaaen");
-        System.out.println(s.countSpecificString("Ya"));
-        System.out.println(s.countSpecificString("As"));
-        s.CountAllStrings(2);
-        s.AllIncludesString("mkgddassafbadayardenfg");
-        s.CountMaxString(1);
-        s.GenerateName();
+        s.parseSite();
+//        System.out.println(s.countSpecificString("Ya"));
+//        System.out.println(s.countSpecificString("As"));
+//        s.CountAllStrings(2);
+//        s.AllIncludesString("mkgddassafbadayardenfg");
+//        s.CountMaxString(1);
+//        s.GenerateName();
     }
 
 }
